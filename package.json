@@ -1,0 +1,53 @@
+{
+  "name": "npm-diff-worker",
+  "version": "0.1.0",
+  "description": "WinterTC-compatible library for computing unified diffs between npm package tarballs",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./src/index.js"
+    },
+    "./errors": {
+      "types": "./dist/errors.d.ts",
+      "default": "./src/errors.js"
+    }
+  },
+  "files": [
+    "src",
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build:types": "tsc",
+    "test": "node --test 'test/**/*.test.js'",
+    "prepublishOnly": "npm run build:types"
+  },
+  "keywords": [
+    "npm",
+    "diff",
+    "tarball",
+    "edge",
+    "cloudflare-workers",
+    "wintercg"
+  ],
+  "author": "",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/indexzero/npm-diff-worker.git"
+  },
+  "dependencies": {
+    "aws4fetch": "^1.0.20",
+    "binary-extensions": "^3.0.0",
+    "diff": "^7.0.0",
+    "modern-tar": "^0.7.2"
+  },
+  "devDependencies": {
+    "@types/diff": "^7.0.2",
+    "typescript": "^5.0.0"
+  }
+}
