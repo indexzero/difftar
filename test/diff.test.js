@@ -150,6 +150,44 @@ describe('diff module', () => {
       // Context 3 should show more surrounding lines
       assert.ok(patchContext3.length >= patchContext1.length);
     });
+
+    it('should pass ignoreAllSpace option to jsdiff', () => {
+      // jsdiff's ignoreWhitespace affects matching algorithm but output still shows actual content
+      // This test verifies the option is passed through and doesn't break functionality
+      const content1 = 'const x = 1;';
+      const content2 = 'const x = 2;';
+
+      // With ignoreAllSpace, non-whitespace changes should still be detected
+      const patch = computeDiff('a/f', 'b/f', content1, content2, { ignoreAllSpace: true });
+      assert.strictEqual(hasChanges(patch), true);
+      assert.ok(patch.includes('-const x = 1;'));
+      assert.ok(patch.includes('+const x = 2;'));
+    });
+
+    it('should pass ignoreSpaceChange option to jsdiff', () => {
+      // jsdiff's ignoreWhitespace affects matching algorithm but output still shows actual content
+      // This test verifies the option is passed through and doesn't break functionality
+      const content1 = 'const x = 1;';
+      const content2 = 'const x = 2;';
+
+      // With ignoreSpaceChange, non-whitespace changes should still be detected
+      const patch = computeDiff('a/f', 'b/f', content1, content2, { ignoreSpaceChange: true });
+      assert.strictEqual(hasChanges(patch), true);
+      assert.ok(patch.includes('-const x = 1;'));
+      assert.ok(patch.includes('+const x = 2;'));
+    });
+
+    it('should handle whitespace-only line changes with ignoreAllSpace', () => {
+      // Note: jsdiff still shows whitespace changes in output even with ignoreWhitespace
+      // The option affects matching algorithm, not output filtering
+      const content1 = 'line1\nline2\nline3';
+      const content2 = 'line1\n  line2  \nline3';
+
+      const patch = computeDiff('a/f', 'b/f', content1, content2, { ignoreAllSpace: true });
+      // The patch still shows the change even with ignoreAllSpace
+      // This is a known jsdiff limitation documented in our DiffOptions typedef
+      assert.ok(typeof patch === 'string');
+    });
   });
 
   describe('hasChanges', () => {

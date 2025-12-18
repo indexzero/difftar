@@ -1,8 +1,11 @@
 {
-  "name": "npm-diff-worker",
+  "name": "difftar",
   "version": "0.1.0",
-  "description": "WinterTC-compatible library for computing unified diffs between npm package tarballs",
+  "description": "RAWR! I'm Difftar! The giant green tarball-diffing monster that stomps through your npm packages! Fear my unified diffs!",
   "type": "module",
+  "bin": {
+    "difftar": "./bin/difftar.js"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -18,7 +21,7 @@
     "dist"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=18"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -32,13 +35,16 @@
     "tarball",
     "edge",
     "cloudflare-workers",
-    "wintercg"
+    "wintercg",
+    "difftar",
+    "reptar",
+    "rawr"
   ],
   "author": "",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/indexzero/npm-diff-worker.git"
+    "url": "git+https://github.com/indexzero/difftar.git"
   },
   "dependencies": {
     "aws4fetch": "^1.0.20",
@@ -48,6 +54,7 @@
   },
   "devDependencies": {
     "@types/diff": "^7.0.2",
+    "@types/node": "^24.10.1",
     "typescript": "^5.0.0"
   }
 }

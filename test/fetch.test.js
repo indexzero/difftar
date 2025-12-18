@@ -429,45 +429,42 @@ describe('fetchTarball', () => {
     );
   });
 
-  it('throws FETCH error for s3 transport (Phase 2)', async () => {
+  it('throws AUTH error for s3 transport with missing credentials', async () => {
     await assert.rejects(
       fetchTarball({
         transport: 's3',
         source: 's3://bucket/key.tgz',
-        s3: { accessKeyId: 'key', secretAccessKey: 'secret' }
+        s3: { accessKeyId: '', secretAccessKey: 'secret' }
       }),
       (err) => {
         return isDiffError(err) &&
-          err.phase === 'FETCH' &&
-          err.message.includes('not yet implemented');
+          err.phase === 'AUTH' &&
+          err.message.includes('accessKeyId');
       }
     );
   });
 
-  it('throws FETCH error for inline transport (Phase 2)', async () => {
-    await assert.rejects(
-      fetchTarball({
-        transport: 'inline',
-        data: new Uint8Array([1, 2, 3])
-      }),
-      (err) => {
-        return isDiffError(err) &&
-          err.phase === 'FETCH' &&
-          err.message.includes('not yet implemented');
-      }
-    );
+  it('returns stream for inline transport with Uint8Array', async () => {
+    const data = new Uint8Array([1, 2, 3, 4, 5]);
+    const result = await fetchTarball({
+      transport: 'inline',
+      data
+    });
+
+    assert.ok(result.stream instanceof ReadableStream);
+    assert.strictEqual(result.size, 5);
   });
 
-  it('throws FETCH error for file transport (Phase 2)', async () => {
+  it('throws FETCH error for file transport with non-existent file', async () => {
     await assert.rejects(
       fetchTarball({
         transport: 'file',
-        source: '/path/to/package.tgz'
+        source: '/nonexistent/path/to/package.tgz'
       }),
       (err) => {
         return isDiffError(err) &&
           err.phase === 'FETCH' &&
-          err.message.includes('not yet implemented');
+          err.message.includes('File not found');
       }
     );
   });
@@ -544,5 +541,197 @@ describe('Integration: fetchTarball with SIZE validation', () => {
     });
 
     assert.strictEqual(result.size, MAX_TARBALL_SIZE);
+  });
+});
+
+describe('fetchTarball inline transport edge cases', () => {
+  it('accepts base64 encoded string', async () => {
+    // Create a small valid byte sequence and encode as base64
+    const bytes = new Uint8Array([0x1f, 0x8b, 0x08, 0x00]); // gzip magic bytes
+    const base64 = btoa(String.fromCharCode(...bytes));
+
+    const result = await fetchTarball({
+      transport: 'inline',
+      data: base64
+    });
+
+    assert.ok(result.stream instanceof ReadableStream);
+    assert.strictEqual(result.size, 4);
+  });
+
+  it('throws FETCH error for invalid base64 string', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 'inline',
+        data: '!!!invalid-base64!!!'
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('Invalid base64');
+      }
+    );
+  });
+
+  it('throws FETCH error for non-Uint8Array/non-string data', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 'inline',
+        data: { foo: 'bar' }
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('must be Uint8Array or base64 string');
+      }
+    );
+  });
+
+  it('throws SIZE error for oversized inline data', async () => {
+    const oversizedData = new Uint8Array(MAX_TARBALL_SIZE + 1);
+
+    await assert.rejects(
+      fetchTarball({
+        transport: 'inline',
+        data: oversizedData
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'SIZE' &&
+          err.message.includes('exceeds limit');
+      }
+    );
+  });
+
+  it('throws FETCH error for missing inline data', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 'inline'
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('Inline data is required');
+      }
+    );
+  });
+});
+
+describe('fetchTarball S3 transport edge cases', () => {
+  it('throws FETCH error for missing S3 config', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 's3',
+        source: 's3://bucket/key.tgz'
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('S3 configuration is required');
+      }
+    );
+  });
+
+  it('throws AUTH error for missing secretAccessKey', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 's3',
+        source: 's3://bucket/key.tgz',
+        s3: { accessKeyId: 'AKIA...', secretAccessKey: '' }
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'AUTH' &&
+          err.message.includes('secretAccessKey');
+      }
+    );
+  });
+
+  it('throws FETCH error for invalid S3 URI format (no key)', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 's3',
+        source: 's3://bucket-only',
+        s3: { accessKeyId: 'key', secretAccessKey: 'secret' }
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('must be s3://bucket/key');
+      }
+    );
+  });
+
+  it('throws FETCH error for S3 URI with empty bucket', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 's3',
+        source: 's3:///key.tgz',
+        s3: { accessKeyId: 'key', secretAccessKey: 'secret' }
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('empty bucket');
+      }
+    );
+  });
+
+  it('throws FETCH error for S3 URI with empty key', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 's3',
+        source: 's3://bucket/',
+        s3: { accessKeyId: 'key', secretAccessKey: 'secret' }
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('empty key');
+      }
+    );
+  });
+
+  it('throws FETCH error for missing S3 source', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 's3',
+        s3: { accessKeyId: 'key', secretAccessKey: 'secret' }
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('S3 source URI is required');
+      }
+    );
+  });
+});
+
+describe('fetchTarball file transport edge cases', () => {
+  it('throws FETCH error for missing file path', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 'file'
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('File path is required');
+      }
+    );
+  });
+
+  it('throws FETCH error for empty file path', async () => {
+    await assert.rejects(
+      fetchTarball({
+        transport: 'file',
+        source: ''
+      }),
+      (err) => {
+        return isDiffError(err) &&
+          err.phase === 'FETCH' &&
+          err.message.includes('File path is required');
+      }
+    );
   });
 });
