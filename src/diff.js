@@ -22,9 +22,12 @@ const decoder = new TextDecoder('utf-8', { fatal: false });
  * Diff options that affect comparison behavior.
  * @typedef {Object} DiffOptions
  * @property {boolean} [ignoreAllSpace] - Ignore all whitespace changes (--diff-ignore-all-space).
- *   Note: Currently implemented as simple whitespace collapse, not exact npm diff behavior.
+ *   Note: jsdiff treats whitespace as equivalent for matching purposes, but output
+ *   still shows actual content. For complete whitespace ignoring, post-processing
+ *   or a different algorithm would be needed.
  * @property {boolean} [ignoreSpaceChange] - Ignore changes in whitespace amount (--diff-ignore-space-change).
  *   Note: Currently treated same as ignoreAllSpace due to jsdiff limitations.
+ *   jsdiff's ignoreWhitespace collapses runs of whitespace for comparison.
  * @property {number} [context] - Number of context lines (default: 3)
  * @property {boolean} [text] - Treat binary files as text
  * @property {boolean} [nameOnly] - Only output file names, not diffs

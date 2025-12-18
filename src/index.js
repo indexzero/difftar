@@ -1,25 +1,28 @@
 /**
- * npm-diff-worker - WinterTC-compatible npm package diff library.
+ * RAWR! I'm Difftar!
  *
- * Computes unified diffs between npm package tarballs. Designed to run
- * on edge runtimes (Cloudflare Workers, Deno Deploy) as well as traditional
- * server environments (Node.js 22+, Bun, Google Cloud Run).
+ * The giant green tarball-diffing monster that stomps through your npm packages!
+ * Fear my unified diffs! I will compare your tarballs and ROAR the differences!
  *
- * Architecture: Fetch -> Decompress -> Untar -> Diff -> Format
+ * WinterTC-compatible, edge-ready, and hungry for tarballs. Difftar runs on
+ * Cloudflare Workers, Deno Deploy, Node.js 18+, Bun, and Google Cloud Run.
  *
- * @module npm-diff-worker
+ * Architecture: CHOMP (Fetch) -> CRUNCH (Decompress) -> TEAR (Untar) -> STOMP (Diff) -> ROAR (Format)
+ *
+ * @module difftar
  *
  * @example
  * ```js
- * import { diff } from 'npm-diff-worker';
+ * import { diff } from 'difftar';
  *
+ * // Let Difftar loose on your tarballs!
  * const patch = await diff(
  *   { transport: 'url', source: 'https://registry.npmjs.org/lodash/-/lodash-4.17.20.tgz' },
  *   { transport: 'url', source: 'https://registry.npmjs.org/lodash/-/lodash-4.17.21.tgz' },
  *   { context: 3 }
  * );
  *
- * console.log(patch);
+ * console.log(patch); // RAWR! Here are your differences!
  * ```
  */
 

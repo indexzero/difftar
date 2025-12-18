@@ -143,9 +143,7 @@ export class DiffError extends Error {
     }
 
     // Capture stack trace excluding constructor (V8 environments only)
-    // @ts-expect-error - captureStackTrace is V8-specific
     if (typeof Error.captureStackTrace === 'function') {
-      // @ts-expect-error - captureStackTrace is V8-specific
       Error.captureStackTrace(this, DiffError);
     }
   }
