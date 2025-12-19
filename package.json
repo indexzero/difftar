@@ -16,12 +16,13 @@
       "default": "./src/errors.js"
     }
   },
+  "packageManager": "pnpm@10.26.1",
   "files": [
     "src",
     "dist"
   ],
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
@@ -40,7 +41,7 @@
     "reptar",
     "rawr"
   ],
-  "author": "",
+  "author": "Charlie Robbins <npm@charlie.dev>",
   "license": "MIT",
   "repository": {
     "type": "git",
